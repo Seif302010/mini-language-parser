@@ -1,22 +1,10 @@
-#######################################
-# IMPORTS
-#######################################
-
 from strings_with_arrows import *
 
 import string
 
-#######################################
-# CONSTANTS
-#######################################
-
 DIGITS = '0123456789'
 LETTERS = string.ascii_letters
 LETTERS_DIGITS = LETTERS + DIGITS
-
-#######################################
-# ERRORS
-#######################################
 
 class Error:
 	def __init__(self, pos_start, pos_end, error_name, details):
@@ -66,10 +54,6 @@ class RTError(Error):
 
 		return 'Traceback (most recent call last):\n' + result
 
-#######################################
-# POSITION
-#######################################
-
 class Position:
 	def __init__(self, idx, ln, col, fn, ftxt):
 		self.idx = idx
@@ -90,10 +74,6 @@ class Position:
 
 	def copy(self):
 		return Position(self.idx, self.ln, self.col, self.fn, self.ftxt)
-
-#######################################
-# TOKENS
-#######################################
 
 TT_INT				= 'INT'
 TT_FLOAT    	= 'FLOAT'
@@ -152,10 +132,6 @@ class Token:
 	def __repr__(self):
 		if self.value: return f'{self.type}:{self.value}'
 		return f'{self.type}'
-
-#######################################
-# LEXER
-#######################################
 
 class Lexer:
 	def __init__(self, fn, text):
@@ -304,10 +280,6 @@ class Lexer:
 
 		return Token(tok_type, pos_start=pos_start, pos_end=self.pos)
 
-#######################################
-# NODES
-#######################################
-
 class NumberNode:
 	def __init__(self, tok):
 		self.tok = tok
@@ -410,10 +382,6 @@ class CallNode:
 		else:
 			self.pos_end = self.node_to_call.pos_end
 
-#######################################
-# PARSE RESULT
-#######################################
-
 class ParseResult:
 	def __init__(self):
 		self.error = None
@@ -440,10 +408,6 @@ class ParseResult:
 			self.error = error
 		return self
 
-#######################################
-# PARSER
-#######################################
-
 class Parser:
 	def __init__(self, tokens):
 		self.tokens = tokens
@@ -464,8 +428,6 @@ class Parser:
 				"Expected '+', '-', '*', '/', '^', '==', '!=', '<', '>', <=', '>=', 'AND' or 'OR'"
 			))
 		return res
-
-	###################################
 
 	def expr(self):
 		res = ParseResult()
@@ -884,8 +846,6 @@ class Parser:
 			node_to_return
 		))
 
-	###################################
-
 	def bin_op(self, func_a, ops, func_b=None):
 		if func_b == None:
 			func_b = func_a
@@ -904,10 +864,6 @@ class Parser:
 
 		return res.success(left)
 
-#######################################
-# RUNTIME RESULT
-#######################################
-
 class RTResult:
 	def __init__(self):
 		self.value = None
@@ -924,10 +880,6 @@ class RTResult:
 	def failure(self, error):
 		self.error = error
 		return self
-
-#######################################
-# VALUES
-#######################################
 
 class Value:
 	def __init__(self):
@@ -1153,20 +1105,12 @@ class Function(Value):
 	def __repr__(self):
 		return f"<function {self.name}>"
 
-#######################################
-# CONTEXT
-#######################################
-
 class Context:
 	def __init__(self, display_name, parent=None, parent_entry_pos=None):
 		self.display_name = display_name
 		self.parent = parent
 		self.parent_entry_pos = parent_entry_pos
 		self.symbol_table = None
-
-#######################################
-# SYMBOL TABLE
-#######################################
 
 class SymbolTable:
 	def __init__(self, parent=None):
@@ -1185,10 +1129,6 @@ class SymbolTable:
 	def remove(self, name):
 		del self.symbols[name]
 
-#######################################
-# INTERPRETER
-#######################################
-
 class Interpreter:
 	def visit(self, node, context):
 		method_name = f'visit_{type(node).__name__}'
@@ -1197,8 +1137,6 @@ class Interpreter:
 
 	def no_visit_method(self, node, context):
 		raise Exception(f'No visit_{type(node).__name__} method defined')
-
-	###################################
 
 	def visit_NumberNode(self, node, context):
 		return RTResult().success(
@@ -1378,27 +1316,20 @@ class Interpreter:
 		if res.error: return res
 		return res.success(return_value)
 
-#######################################
-# RUN
-#######################################
-
 global_symbol_table = SymbolTable()
 global_symbol_table.set("NULL", Number(0))
 global_symbol_table.set("FALSE", Number(0))
 global_symbol_table.set("TRUE", Number(1))
 
 def run(fn, text):
-	# Generate tokens
 	lexer = Lexer(fn, text)
 	tokens, error = lexer.make_tokens()
 	if error: return None, error
-	
-	# Generate AST
+
 	parser = Parser(tokens)
 	ast = parser.parse()
 	if ast.error: return None, ast.error
 
-	# Run program
 	interpreter = Interpreter()
 	context = Context('<program>')
 	context.symbol_table = global_symbol_table
