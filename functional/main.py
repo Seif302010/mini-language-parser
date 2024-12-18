@@ -115,10 +115,11 @@ def evaluate(node: ASTNode, env: dict) -> Any:
         raise TypeError(f"Unknown AST node: {type(node)}")
 
 if __name__ == "__main__":
-    code = "x = 10 / 5"
-    tokens = tokenize(code)
-    
-    ast = parse(tokens)
-    result, new_env = evaluate(ast, {})
-    print(f"Result: {result}")
-    print(f"Environment: {new_env}")
+    while(True):
+        code = input(">>>")
+        tokens = tokenize(code)
+        
+        ast = parse(tokens)
+        result, new_env = evaluate(ast, {})
+        print(f"Result: {result}")
+        print(f"Environment: {new_env}")
