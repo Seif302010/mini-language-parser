@@ -116,7 +116,7 @@ def evaluate(node: ASTNode, env: dict) -> Any:
 
 if __name__ == "__main__":
     while(True):
-        code = input(">>>")
+        code = input(">>> ")
         tokens = tokenize(code)
         
         ast = parse(tokens)
