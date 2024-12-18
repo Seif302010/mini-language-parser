@@ -117,8 +117,7 @@ def evaluate(node: ASTNode, env: dict) -> Any:
 if __name__ == "__main__":
     code = "x = 10 / 5"
     tokens = tokenize(code)
-
-    # Functional
+    
     ast = parse(tokens)
     result, new_env = evaluate(ast, {})
     print(f"Result: {result}")
