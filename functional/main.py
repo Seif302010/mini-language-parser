@@ -136,5 +136,4 @@ if __name__ == "__main__":
 
         ast = parse(tokens)
         result = evaluate(ast, env)
-        print(f"Result: {result}")
-        print(f"Environment: {env}")
+        print(result)
