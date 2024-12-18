@@ -88,12 +88,12 @@ def evaluate(node: ASTNode, env: dict) -> Any:
             raise NameError(f"Variable '{node.name}' is not defined")
         return env[node.name]
     elif isinstance(node, Assignment):
-        value = evaluate_functional(node.value, env)
+        value = evaluate(node.value, env)
         new_env = {**env, node.name: value}  # Immutable update
         return value, new_env
     elif isinstance(node, BinaryOp):
-        left = evaluate_functional(node.left, env)
-        right = evaluate_functional(node.right, env)
+        left = evaluate(node.left, env)
+        right = evaluate(node.right, env)
         if node.operator == '+':
             return left + right
         elif node.operator == '-':
@@ -107,9 +107,9 @@ def evaluate(node: ASTNode, env: dict) -> Any:
         else:
             raise ValueError(f"Unknown operator: {node.operator}")
     elif isinstance(node, IfStatement):
-        condition = evaluate_functional(node.condition, env)
+        condition = evaluate(node.condition, env)
         if condition:
-            return evaluate_functional(node.then_branch, env)
+            return evaluate(node.then_branch, env)
         return None
     else:
         raise TypeError(f"Unknown AST node: {type(node)}")
