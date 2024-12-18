@@ -23,9 +23,10 @@ class BinaryOp(ASTNode):
         self.right = right
 
 class IfStatement(ASTNode):
-    def __init__(self, condition: ASTNode, then_branch: ASTNode):
+    def __init__(self, condition: ASTNode, then_branch: ASTNode, else_branch: ASTNode = None):
         self.condition = condition
         self.then_branch = then_branch
+        self.else_branch = else_branch
 
 def tokenize(input_code: str) -> List[str]:
     import re
@@ -52,7 +53,7 @@ def parse(tokens: List[str]):
             left, pos = parse_primary(pos)
             while pos < len(tokens):
                 op = tokens[pos]
-                op_precedence = {'+': 1, '-': 1, '*': 2, '/': 2}.get(op, -1)
+                op_precedence = {'+': 1, '-': 1, '*': 2, '/': 2, '>': 3, '<': 3, '=': 0}.get(op, -1)
                 if op_precedence < precedence:
                     break
                 right, new_pos = parse_binary_op(pos + 1, op_precedence + 1)
@@ -72,8 +73,13 @@ def parse(tokens: List[str]):
             condition, new_pos = parse_expression(pos + 1)
             if tokens[new_pos] != 'then':
                 raise SyntaxError("Expected 'then'")
-            then_branch, final_pos = parse_statement(new_pos + 1)
-            return IfStatement(condition, then_branch), final_pos
+            then_branch, new_pos = parse_statement(new_pos + 1)
+            
+            else_branch = None
+            if tokens[new_pos] == 'else':
+                else_branch, new_pos = parse_statement(new_pos + 1)
+
+            return IfStatement(condition, then_branch, else_branch), new_pos
         else:
             return parse_expression(pos)
 
@@ -89,8 +95,8 @@ def evaluate(node: ASTNode, env: dict) -> Any:
         return env[node.name]
     elif isinstance(node, Assignment):
         value = evaluate(node.value, env)
-        new_env = {**env, node.name: value}  # Immutable update
-        return value, new_env
+        env[node.name] = value
+        return value
     elif isinstance(node, BinaryOp):
         left = evaluate(node.left, env)
         right = evaluate(node.right, env)
@@ -104,22 +110,31 @@ def evaluate(node: ASTNode, env: dict) -> Any:
             if right == 0:
                 raise ZeroDivisionError("Division by zero")
             return left / right
+        elif node.operator == '>':
+            return left > right
+        elif node.operator == '<':
+            return left < right
+        elif node.operator == '=':
+            return left == right
         else:
             raise ValueError(f"Unknown operator: {node.operator}")
     elif isinstance(node, IfStatement):
         condition = evaluate(node.condition, env)
         if condition:
             return evaluate(node.then_branch, env)
+        elif node.else_branch:
+            return evaluate(node.else_branch, env)
         return None
     else:
         raise TypeError(f"Unknown AST node: {type(node)}")
 
 if __name__ == "__main__":
-    while(True):
+    env = {} 
+    while True:
         code = input(">>> ")
         tokens = tokenize(code)
-        
+
         ast = parse(tokens)
-        result, new_env = evaluate(ast, {})
+        result = evaluate(ast, env)
         print(f"Result: {result}")
-        print(f"Environment: {new_env}")
+        print(f"Environment: {env}")
